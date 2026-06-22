@@ -1,0 +1,19 @@
+{
+  "name": "xb2bx-assistant-backend",
+  "version": "1.0.0",
+  "description": "XB2BX AI Assistant — multi-agent chat backend (OpenAI): knowledge center, specialist agents, tool use, leads, conversations, admin API.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --experimental-sqlite --watch server.js",
+    "seed": "node --experimental-sqlite src/db/seed.js"
+  },
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.67.3"
+  }
+}
