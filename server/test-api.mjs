@@ -106,9 +106,11 @@ console.log('\n=== ADMIN TRAINING (knowledge) ===');
 {
   const { d } = await j('/admin/knowledge', { headers: AH });
   ok('knowledge list seeded', (d?.knowledge || []).length >= 14, `count=${d?.knowledge?.length}`);
-  await j('/admin/knowledge/company', { method: 'PUT', headers: AH, body: JSON.stringify({ title: 'Company', content: 'TEST CONTENT XYZ', enabled: true }) });
-  const one = await j('/admin/knowledge/company', { headers: AH });
+  // Use a throwaway section so we never corrupt the real "company" content.
+  await j('/admin/knowledge/__test__', { method: 'PUT', headers: AH, body: JSON.stringify({ title: 'Test', content: 'TEST CONTENT XYZ', enabled: true }) });
+  const one = await j('/admin/knowledge/__test__', { headers: AH });
   ok('knowledge edit saved', one.d?.knowledge?.content === 'TEST CONTENT XYZ');
+  await j('/admin/knowledge/__test__', { method: 'DELETE', headers: AH });
   // new section + delete
   await j('/admin/knowledge/test_sec', { method: 'PUT', headers: AH, body: JSON.stringify({ title: 'T', content: 'temp', enabled: false }) });
   ok('knowledge add', (await j('/admin/knowledge/test_sec', { headers: AH })).d?.knowledge?.key === 'test_sec');

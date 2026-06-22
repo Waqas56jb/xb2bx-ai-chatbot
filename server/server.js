@@ -165,9 +165,13 @@ app.post('/api/chat/stream', h(async (req, res) => {
 
 // ---------------- Admin ----------------
 app.post('/api/admin/login', (req, res) => {
-  const token = (req.body?.token || '').trim();
-  if (!CONFIG.adminToken || token !== CONFIG.adminToken) return res.status(401).json({ ok: false, error: 'invalid token' });
-  res.json({ ok: true });
+  const email = (req.body?.email || '').trim().toLowerCase();
+  const password = req.body?.password || '';
+  if (email !== CONFIG.adminEmail || password !== CONFIG.adminPassword) {
+    return res.status(401).json({ ok: false, error: 'Invalid email or password' });
+  }
+  // Hand back the bearer token the panel uses for every subsequent admin call.
+  res.json({ ok: true, token: CONFIG.adminToken });
 });
 
 app.get('/api/admin/stats', requireAdmin, h(async (_req, res) => res.json(await getStats())));

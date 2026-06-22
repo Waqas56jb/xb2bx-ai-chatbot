@@ -26,8 +26,11 @@ export const CONFIG = {
   maxTokens: Number(process.env.MAX_TOKENS || 1400),
   maxToolHops: Number(process.env.MAX_TOOL_HOPS || 6),
 
-  // Admin auth — the admin panel logs in with this token
-  adminToken: process.env.ADMIN_TOKEN || ''
+  // Admin auth — the admin panel logs in with email + password, then uses
+  // adminToken as the bearer for every admin API call.
+  adminToken: process.env.ADMIN_TOKEN || '',
+  adminEmail: (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase(),
+  adminPassword: process.env.ADMIN_PASSWORD || 'admin@123!'
 };
 
 export function assertConfig() {

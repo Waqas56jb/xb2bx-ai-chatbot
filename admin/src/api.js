@@ -20,14 +20,14 @@ export async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-/** Login is unauthenticated — verifies the token, then we store it. */
-export async function login(token) {
+/** Login with email + password; returns the bearer token to store. */
+export async function login(email, password) {
   const res = await fetch(CONFIG.apiBase + '/admin/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token })
+    body: JSON.stringify({ email, password })
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok) throw new Error(data.error || 'Invalid admin token');
-  return true;
+  if (!res.ok || !data.ok || !data.token) throw new Error(data.error || 'Invalid email or password');
+  return data.token;
 }

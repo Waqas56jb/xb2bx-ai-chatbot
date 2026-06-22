@@ -6,7 +6,8 @@ import { CONFIG } from '../config.js';
 import { Button, ErrorNote } from '../components/ui.jsx';
 
 export default function Login() {
-  const [token, setTok] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -16,8 +17,8 @@ export default function Login() {
     setError('');
     setBusy(true);
     try {
-      await login(token.trim());
-      setToken(token.trim());
+      const token = await login(email.trim(), password);
+      setToken(token);
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -31,17 +32,28 @@ export default function Login() {
       <form className="login-card" onSubmit={submit}>
         <div className="login-badge">＋</div>
         <h1 className="login-title">{CONFIG.brand} Admin</h1>
-        <p className="login-sub">Enter your admin token to continue.</p>
+        <p className="login-sub">Sign in to manage your assistant.</p>
+
+        <input
+          className="login-input"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="username"
+          autoFocus
+        />
         <input
           className="login-input"
           type="password"
-          placeholder="Admin token"
-          value={token}
-          onChange={(e) => setTok(e.target.value)}
-          autoFocus
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
+
         <ErrorNote>{error}</ErrorNote>
-        <Button type="submit" disabled={busy || !token.trim()}>
+        <Button type="submit" disabled={busy || !email.trim() || !password}>
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
