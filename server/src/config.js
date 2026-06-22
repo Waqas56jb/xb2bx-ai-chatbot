@@ -1,13 +1,10 @@
 /**
- * Central configuration — every environment-driven knob in one place.
- * Read once at startup so the rest of the code never touches process.env.
+ * Bootstrap configuration — values needed before the database is reachable.
+ * Runtime-tunable settings (OpenAI key, models, persona, contact info, etc.)
+ * live in the `settings` table and are read via settings.js so the admin panel
+ * can change them without a redeploy. The values here are fallbacks/secrets.
  */
 import 'dotenv/config';
-
-function bool(v, fallback = false) {
-  if (v === undefined) return fallback;
-  return ['1', 'true', 'yes', 'on'].includes(String(v).toLowerCase());
-}
 
 export const CONFIG = {
   // Server
@@ -17,28 +14,27 @@ export const CONFIG = {
     .map((s) => s.trim())
     .filter(Boolean),
 
-  // OpenAI
+  // Supabase (Postgres) — the database
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+
+  // OpenAI fallbacks (used only if the settings table has no value)
   openaiApiKey: process.env.OPENAI_API_KEY || '',
-  // Main agents run on a high-quality model; the router runs on a fast/cheap one.
   mainModel: process.env.OPENAI_MODEL || 'gpt-4o',
   routerModel: process.env.OPENAI_ROUTER_MODEL || 'gpt-4o-mini',
   temperature: Number(process.env.TEMPERATURE ?? 0.6),
   maxTokens: Number(process.env.MAX_TOKENS || 1400),
   maxToolHops: Number(process.env.MAX_TOOL_HOPS || 6),
 
-  // Admin (leads / conversations / analytics dashboard)
-  adminToken: process.env.ADMIN_TOKEN || '',
-
-  // Persistence
-  persistConversations: bool(process.env.PERSIST_CONVERSATIONS, true)
+  // Admin auth — the admin panel logs in with this token
+  adminToken: process.env.ADMIN_TOKEN || ''
 };
 
-/** Fail fast with a clear message if the API key is missing. */
 export function assertConfig() {
-  if (!CONFIG.openaiApiKey) {
-    console.warn(
-      '\n[config] WARNING: OPENAI_API_KEY is not set. Copy .env.example to .env ' +
-        'and paste your OpenAI key, or chat requests will fail.\n'
-    );
+  if (!CONFIG.supabaseUrl || !CONFIG.supabaseServiceKey) {
+    console.warn('\n[config] WARNING: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set. Database calls will fail until you add them to .env.\n');
+  }
+  if (!CONFIG.adminToken) {
+    console.warn('[config] WARNING: ADMIN_TOKEN not set — the admin panel will reject all logins.');
   }
 }

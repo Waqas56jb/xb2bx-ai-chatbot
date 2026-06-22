@@ -1,22 +1,10 @@
 /**
- * Leads repository — capture, score, and persist sales/partnership leads
- * (Phase 6 of the blueprint). Same swappable pattern as suppliers.js:
- * reimplement these functions against your CRM/production DB later and
- * nothing upstream changes.
- *
- * Scoring rubric (0..100) — the knobs are SIGNALS below. A lead scores on
- * the strength of buying signals it carries, not just field count. Tune to
- * match what "qualified" means for XB2BX.
+ * Leads repository (Supabase) — capture, score, persist, and admin manage.
  */
-import db from '../db/index.js';
+import { supabase, unwrap, clean } from '../db/supabase.js';
 
-const SIGNALS = {
-  budget: 30,    // strongest buying signal
-  volume: 25,
-  timeline: 25,  // urgency
-  location: 20
-};
-const QUALIFIED_AT = 60; // score at/above this is a qualified lead
+const SIGNALS = { budget: 30, volume: 25, timeline: 25, location: 20 };
+const QUALIFIED_AT = 60;
 
 function scoreLead(input) {
   let score = 0;
@@ -27,13 +15,8 @@ function scoreLead(input) {
   return { score, tier, qualified: score >= QUALIFIED_AT ? 1 : 0 };
 }
 
-const insert = db.prepare(`
-  INSERT INTO leads (id, name, email, interest, volume, budget, location, timeline, score, tier, qualified)
-  VALUES (@id, @name, @email, @interest, @volume, @budget, @location, @timeline, @score, @tier, @qualified)
-`);
-
 /** Capture + score a lead. Returns the stored record. */
-export function createLead(input = {}) {
+export async function createLead(input = {}) {
   const { score, tier, qualified } = scoreLead(input);
   const row = {
     id: 'LEAD-' + Date.now(),
@@ -48,20 +31,23 @@ export function createLead(input = {}) {
     tier,
     qualified
   };
-  insert.run(row);
-  // next_step guides the assistant on what to do after capturing.
+  const saved = unwrap(await supabase.from('leads').insert(row).select().single(), 'createLead');
   const next_step = qualified
     ? 'Qualified — offer a supplier introduction or membership and escalate to the team.'
     : 'Not yet qualified — gather budget, volume, timeline, or location to progress.';
-  return { ...row, qualified: !!qualified, next_step };
+  return { ...saved, qualified: !!qualified, next_step };
 }
 
-/** Read leads for the future dashboard (Phase 7). */
-export function listLeads({ tier, status, limit = 50 } = {}) {
-  const where = [];
-  const params = {};
-  if (tier) { where.push('tier = @tier'); params.tier = tier; }
-  if (status) { where.push('status = @status'); params.status = status; }
-  const sql = `SELECT * FROM leads ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY score DESC, created_at DESC LIMIT @limit`;
-  return db.prepare(sql).all({ ...params, limit });
+export async function listLeads({ tier, status, limit = 200 } = {}) {
+  let q = supabase.from('leads').select('*').order('score', { ascending: false }).order('created_at', { ascending: false }).limit(limit);
+  if (tier) q = q.eq('tier', tier);
+  if (status) q = q.eq('status', status);
+  return unwrap(await q, 'listLeads');
+}
+export async function updateLead(id, patch = {}) {
+  return unwrap(await supabase.from('leads').update(clean(patch)).eq('id', id).select().single(), 'updateLead');
+}
+export async function deleteLead(id) {
+  unwrap(await supabase.from('leads').delete().eq('id', id), 'deleteLead');
+  return { id, deleted: true };
 }

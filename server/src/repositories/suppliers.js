@@ -1,24 +1,11 @@
 /**
- * Supplier repository — the matchmaking + ranking engine.
- *
- * This is the swappable data-access layer. To move off SQLite, reimplement
- * searchSuppliers() against your engine (Postgres, MySQL, a REST API, or a
- * search service like Meilisearch/Elastic). Tools and agents never change.
- *
- * Ranking is done in code so it's readable and tunable. Weights are
- * constants below — adjust them to change how matchmaking behaves.
+ * Supplier repository (Supabase) — matchmaking/ranking + admin CRUD.
+ * Candidates are filtered in SQL, then ranked in code so the logic is readable
+ * and tunable. To change matchmaking, adjust the weights in W.
  */
-import db from '../db/index.js';
+import { supabase, unwrap, clean } from '../db/supabase.js';
 
-// Ranking weights (must reflect what "a good match" means for XB2BX).
-const W = {
-  relevance: 0.5,   // keyword overlap with the buyer's need
-  verified: 0.2,    // verified suppliers rank higher
-  capacity: 0.15,   // can they meet the requested volume
-  responsiveness: 0.1,
-  rating: 0.05
-};
-
+const W = { relevance: 0.5, verified: 0.2, capacity: 0.15, responsiveness: 0.1, rating: 0.05 };
 const STOP = new Set(['the', 'a', 'an', 'of', 'for', 'and', 'to', 'in', 'with', 'need', 'want', 'units', 'i']);
 
 function tokens(s) {
@@ -28,52 +15,42 @@ function tokens(s) {
     .split(/\s+/)
     .filter((t) => t.length > 1 && !STOP.has(t));
 }
-
-function relevanceScore(queryTokens, row) {
-  if (!queryTokens.length) return 0.4; // neutral when no product terms given
+function relevanceScore(q, row) {
+  if (!q.length) return 0.4;
   const hay = new Set(tokens(`${row.name} ${row.keywords} ${row.categories} ${row.description}`));
   let hits = 0;
-  for (const t of queryTokens) if (hay.has(t)) hits++;
-  return hits / queryTokens.length; // 0..1
+  for (const t of q) if (hay.has(t)) hits++;
+  return hits / q.length;
 }
-
 function capacityScore(row, minQty) {
-  if (!minQty) return 0.6; // unknown demand -> neutral-positive
+  if (!minQty) return 0.6;
   if (row.monthly_capacity >= minQty) return 1;
-  if (row.monthly_capacity === 0) return 0.3;
-  return Math.max(0.2, row.monthly_capacity / minQty); // partial fit
+  if (!row.monthly_capacity) return 0.3;
+  return Math.max(0.2, row.monthly_capacity / minQty);
 }
 
-/**
- * @param {{product?:string, category?:string, country?:string, min_quantity?:number, limit?:number}} q
- * @returns ranked supplier matches
- */
-export function searchSuppliers(q = {}) {
+/** Ranked supplier matches for the assistant. */
+export async function searchSuppliers(q = {}) {
   const { product, category, country, min_quantity, limit = 5 } = q;
 
-  // Coarse filter in SQL (cheap), then rank candidates in code.
-  const where = [];
-  const params = {};
-  if (country) { where.push('LOWER(country) = LOWER(@country)'); params.country = country; }
-  if (category) { where.push("categories LIKE @category"); params.category = `%${category.toLowerCase()}%`; }
-  const sql = `SELECT * FROM suppliers ${where.length ? 'WHERE ' + where.join(' AND ') : ''}`;
-  let candidates = db.prepare(sql).all(params);
+  let query = supabase.from('suppliers').select('*');
+  if (country) query = query.ilike('country', country);
+  if (category) query = query.ilike('categories', `%${category}%`);
+  let candidates = unwrap(await query, 'searchSuppliers');
 
-  // If a strict filter returned nothing, fall back to the full set so the
-  // buyer still gets the closest matches rather than an empty result.
-  if (candidates.length === 0 && (country || category)) {
-    candidates = db.prepare('SELECT * FROM suppliers').all();
+  if ((!candidates || candidates.length === 0) && (country || category)) {
+    candidates = unwrap(await supabase.from('suppliers').select('*'), 'searchSuppliers.all');
   }
 
   const qTokens = tokens(product);
-  const ranked = candidates
+  return (candidates || [])
     .map((row) => {
       const score =
         W.relevance * relevanceScore(qTokens, row) +
         W.verified * (row.verified ? 1 : 0) +
         W.capacity * capacityScore(row, min_quantity) +
-        W.responsiveness * row.responsiveness +
-        W.rating * (row.rating / 5);
+        W.responsiveness * (row.responsiveness || 0) +
+        W.rating * ((row.rating || 0) / 5);
       return {
         id: row.id,
         name: row.name,
@@ -87,6 +64,34 @@ export function searchSuppliers(q = {}) {
     })
     .sort((a, b) => b.match_score - a.match_score)
     .slice(0, limit);
+}
 
-  return ranked;
+// ---- Admin CRUD ----
+export async function listSuppliers({ limit = 200 } = {}) {
+  return unwrap(await supabase.from('suppliers').select('*').order('created_at', { ascending: false }).limit(limit), 'listSuppliers');
+}
+export async function createSupplier(input = {}) {
+  const row = {
+    id: input.id || 'SUP-' + Date.now(),
+    name: input.name || '',
+    country: input.country || '',
+    categories: input.categories || '',
+    keywords: input.keywords || '',
+    description: input.description || '',
+    monthly_capacity: Number(input.monthly_capacity) || 0,
+    min_order_qty: Number(input.min_order_qty) || 0,
+    verified: input.verified ? 1 : 0,
+    responsiveness: Number(input.responsiveness) || 0,
+    rating: Number(input.rating) || 0
+  };
+  return unwrap(await supabase.from('suppliers').insert(row).select().single(), 'createSupplier');
+}
+export async function updateSupplier(id, patch = {}) {
+  patch = clean(patch);
+  if ('verified' in patch) patch.verified = patch.verified ? 1 : 0;
+  return unwrap(await supabase.from('suppliers').update(patch).eq('id', id).select().single(), 'updateSupplier');
+}
+export async function deleteSupplier(id) {
+  unwrap(await supabase.from('suppliers').delete().eq('id', id), 'deleteSupplier');
+  return { id, deleted: true };
 }

@@ -126,12 +126,12 @@ export const TOOL_SCHEMAS = {
 // ---- Executors (wired to the real database via repositories) ----
 export const EXECUTORS = {
   async search_suppliers({ product, category, country, min_quantity }) {
-    const results = searchSuppliers({ product, category, country, min_quantity, limit: 5 });
+    const results = await searchSuppliers({ product, category, country, min_quantity, limit: 5 });
     return { query: { product, category, country, min_quantity }, count: results.length, results };
   },
 
   async search_products({ query, category }) {
-    const results = searchProducts({ query, category, limit: 5 });
+    const results = await searchProducts({ query, category, limit: 5 });
     return { query, category, count: results.length, results };
   },
 

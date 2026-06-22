@@ -1,129 +1,243 @@
 /**
- * XB2BX Assistant — server entry point (OpenAI-powered).
+ * XB2BX Assistant — server (OpenAI + Supabase).
  *
- * Public:
- *   GET  /api/health                      -> { ok, model }
- *   POST /api/chat                        { messages, session_id?, conversation_id? }
- *                                         -> { reply, agent, actions, conversation_id }
+ * PUBLIC
+ *   GET  /api/health
+ *   POST /api/chat            { messages, session_id?, conversation_id? } -> JSON
+ *   POST /api/chat/stream     same body -> Server-Sent Events (token-by-token)
  *
- * Admin (require `Authorization: Bearer <ADMIN_TOKEN>`):
- *   GET  /api/admin/stats                 -> dashboard counts
- *   GET  /api/admin/leads                 ?tier=&status=
- *   GET  /api/admin/conversations         ?status=
- *   GET  /api/admin/conversations/:id     -> conversation + messages
- *   GET  /api/admin/rfqs                  ?status=
- *   GET  /api/admin/listings              ?status=
- *   GET  /api/admin/tickets               ?status=
- *   GET  /api/admin/escalations           ?status=
- *
- * Run:  npm install && npm run seed && npm start
+ * ADMIN  (Authorization: Bearer <ADMIN_TOKEN>)
+ *   POST /api/admin/login                 { token } -> { ok }
+ *   GET  /api/admin/stats
+ *   Settings:   GET/PUT  /api/admin/settings
+ *   Training:   GET /api/admin/knowledge · GET/PUT/DELETE /api/admin/knowledge/:key
+ *   Leads:      GET /api/admin/leads · PATCH/DELETE /api/admin/leads/:id
+ *   Convos:     GET /api/admin/conversations · GET/PATCH/DELETE /api/admin/conversations/:id
+ *   Suppliers:  GET/POST /api/admin/suppliers · PATCH/DELETE /api/admin/suppliers/:id
+ *   Products:   GET/POST /api/admin/products · PATCH/DELETE /api/admin/products/:id
+ *   RFQs:       GET /api/admin/rfqs · PATCH/DELETE /api/admin/rfqs/:id
+ *   Listings:   GET /api/admin/listings · PATCH/DELETE /api/admin/listings/:id
+ *   Tickets:    GET /api/admin/tickets · PATCH/DELETE /api/admin/tickets/:id
+ *   Escalations:GET /api/admin/escalations · PATCH/DELETE /api/admin/escalations/:id
  */
 import express from 'express';
 import cors from 'cors';
 import { CONFIG, assertConfig } from './src/config.js';
-import { routeAgent, reply } from './src/llm.js';
-import { recordTurn, listConversations, getConversation } from './src/repositories/conversations.js';
-import { listLeads } from './src/repositories/leads.js';
-import { listRfqs } from './src/repositories/rfqs.js';
-import { listListings } from './src/repositories/listings.js';
-import { listTickets, listEscalations } from './src/repositories/tickets.js';
+import { routeAgent, reply, replyStream } from './src/llm.js';
+import { AGENTS } from './src/agents.js';
+import { getEffectiveConfig } from './src/settings.js';
+import { getSettingsForAdmin, updateSettings } from './src/settings.js';
+import { listKnowledge, getKnowledge, upsertKnowledge, deleteKnowledge } from './src/knowledge.js';
+import { recordTurn, listConversations, getConversation, updateConversation, deleteConversation } from './src/repositories/conversations.js';
+import { listLeads, updateLead, deleteLead } from './src/repositories/leads.js';
+import { listSuppliers, createSupplier, updateSupplier, deleteSupplier } from './src/repositories/suppliers.js';
+import { listProducts, createProduct, updateProduct, deleteProduct } from './src/repositories/products.js';
+import { listRfqs, updateRfq, deleteRfq } from './src/repositories/rfqs.js';
+import { listListings, updateListing, deleteListing } from './src/repositories/listings.js';
+import { listTickets, updateTicket, deleteTicket, listEscalations, updateEscalation, deleteEscalation } from './src/repositories/tickets.js';
 import { getStats } from './src/repositories/analytics.js';
+import { ensureSeed } from './src/bootstrap.js';
 
 assertConfig();
+ensureSeed();
 
 const app = express();
-app.use(express.json({ limit: '256kb' }));
-
+app.use(express.json({ limit: '512kb' }));
 const corsOrigin = CONFIG.allowedOrigins.includes('*') ? true : CONFIG.allowedOrigins;
-app.use(cors({ origin: corsOrigin, methods: ['POST', 'GET', 'OPTIONS'] }));
+app.use(cors({ origin: corsOrigin, methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'] }));
 
-// ---- Helpers ----
 function textOf(content) {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) return content.map((c) => (typeof c === 'string' ? c : c?.text || '')).join(' ');
   return '';
 }
-
-// Admin auth middleware.
 function requireAdmin(req, res, next) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!CONFIG.adminToken || token !== CONFIG.adminToken) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
+  if (!CONFIG.adminToken || token !== CONFIG.adminToken) return res.status(401).json({ error: 'unauthorized' });
   next();
 }
+// Wrap async handlers so rejections become 500s instead of crashing.
+const h = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((err) => {
+  console.error(`[${req.method} ${req.path}]`, err?.message || err);
+  if (!res.headersSent) res.status(500).json({ error: 'server', message: err?.message || 'error' });
+});
 
-// ---- Public ----
-app.get('/api/health', (_req, res) => res.json({ ok: true, model: CONFIG.mainModel }));
+// ---------------- Public ----------------
+app.get('/api/health', h(async (_req, res) => {
+  const eff = await getEffectiveConfig();
+  res.json({ ok: true, model: eff.mainModel, bot_enabled: eff.botEnabled });
+}));
 
-app.post('/api/chat', async (req, res) => {
-  const { messages, session_id, conversation_id, channel } = req.body || {};
+function validateChat(req, res) {
+  const { messages } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: 'Expected { messages: [...] }' });
+    res.status(400).json({ error: 'Expected { messages: [...] }' });
+    return null;
   }
-  if (messages.length > 40) return res.status(413).json({ error: 'Conversation too long' });
+  if (messages.length > 40) {
+    res.status(413).json({ error: 'Conversation too long' });
+    return null;
+  }
+  const lastUser = [...messages].reverse().find((m) => m && m.role === 'user');
+  if (!lastUser || !textOf(lastUser.content).trim()) {
+    res.status(400).json({ error: 'Empty message' });
+    return null;
+  }
+  return req.body;
+}
+
+app.post('/api/chat', h(async (req, res) => {
+  const body = validateChat(req, res);
+  if (!body) return;
+  const { messages, session_id, conversation_id, channel } = body;
+
+  const eff = await getEffectiveConfig();
+  if (!eff.botEnabled) {
+    return res.json({ reply: 'The assistant is temporarily unavailable. Please try again shortly or contact our team.', agent: 'System', actions: [], conversation_id: conversation_id || null });
+  }
+
+  const agentKey = await routeAgent(messages);
+  const result = await reply(messages, agentKey);
+
+  let convId = conversation_id || null;
+  try {
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+    convId = await recordTurn({ conversation_id, session_id, channel, userText: textOf(lastUser?.content), assistantText: result.reply, agent: result.agent });
+  } catch (e) {
+    console.error('[persist]', e?.message || e);
+  }
+  res.json({ ...result, conversation_id: convId });
+}));
+
+// Token-by-token streaming via Server-Sent Events.
+app.post('/api/chat/stream', h(async (req, res) => {
+  const body = validateChat(req, res);
+  if (!body) return;
+  const { messages, session_id, conversation_id, channel } = body;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+  // Writes throw once the client disconnects; guard so a dropped connection
+  // never crashes the request.
+  const send = (event, data) => {
+    if (res.writableEnded) return;
+    try {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    } catch {
+      /* client disconnected mid-stream */
+    }
+  };
+
+  const eff = await getEffectiveConfig();
+  if (!eff.botEnabled) {
+    send('token', { token: 'The assistant is temporarily unavailable. Please try again shortly.' });
+    send('done', { agent: 'System', conversation_id: conversation_id || null });
+    return res.end();
+  }
 
   try {
     const agentKey = await routeAgent(messages);
-    const result = await reply(messages, agentKey);
+    send('meta', { agent: AGENTS[agentKey]?.label || 'Assistant' });
+
+    let full = '';
+    const result = await replyStream(messages, agentKey, (t) => {
+      full += t;
+      send('token', { token: t });
+    });
 
     let convId = conversation_id || null;
-    if (CONFIG.persistConversations) {
+    try {
       const lastUser = [...messages].reverse().find((m) => m.role === 'user');
-      try {
-        convId = recordTurn({
-          conversation_id,
-          session_id,
-          channel,
-          userText: textOf(lastUser?.content),
-          assistantText: result.reply,
-          agent: result.agent
-        });
-      } catch (e) {
-        console.error('[persist] failed:', e?.message || e); // never block a reply on persistence
-      }
+      convId = await recordTurn({ conversation_id, session_id, channel, userText: textOf(lastUser?.content), assistantText: result.reply, agent: result.agent });
+    } catch (e) {
+      console.error('[persist]', e?.message || e);
     }
-
-    res.json({ ...result, conversation_id: convId });
+    send('done', { agent: result.agent, actions: result.actions, conversation_id: convId, reply: result.reply });
   } catch (err) {
-    console.error('chat error:', err);
-    res.status(500).json({
-      error: 'server',
-      reply:
-        "I couldn't complete that just now. Please try again, or contact the XB2BX team and we'll help directly."
-    });
+    console.error('[stream]', err?.message || err);
+    send('error', { message: "I couldn't complete that just now. Please try again." });
   }
+  res.end();
+}));
+
+// ---------------- Admin ----------------
+app.post('/api/admin/login', (req, res) => {
+  const token = (req.body?.token || '').trim();
+  if (!CONFIG.adminToken || token !== CONFIG.adminToken) return res.status(401).json({ ok: false, error: 'invalid token' });
+  res.json({ ok: true });
 });
 
-// ---- Admin API (powers the admin panel) ----
-app.get('/api/admin/stats', requireAdmin, (_req, res) => res.json(getStats()));
+app.get('/api/admin/stats', requireAdmin, h(async (_req, res) => res.json(await getStats())));
 
-app.get('/api/admin/leads', requireAdmin, (req, res) => {
-  const { tier, status } = req.query;
-  res.json({ leads: listLeads({ tier, status }) });
-});
+// Settings (chatbot control: OpenAI key, models, persona, contact, on/off)
+app.get('/api/admin/settings', requireAdmin, h(async (_req, res) => res.json({ settings: await getSettingsForAdmin() })));
+app.put('/api/admin/settings', requireAdmin, h(async (req, res) => {
+  const patch = { ...(req.body || {}) };
+  // Don't overwrite the key with the masked display value.
+  if (typeof patch.openai_api_key === 'string' && patch.openai_api_key.includes('…')) delete patch.openai_api_key;
+  delete patch.openai_api_key_set;
+  await updateSettings(patch);
+  res.json({ settings: await getSettingsForAdmin() });
+}));
 
-app.get('/api/admin/conversations', requireAdmin, (req, res) => {
-  res.json({ conversations: listConversations({ status: req.query.status }) });
-});
+// Training (knowledge base)
+app.get('/api/admin/knowledge', requireAdmin, h(async (_req, res) => res.json({ knowledge: await listKnowledge() })));
+app.get('/api/admin/knowledge/:key', requireAdmin, h(async (req, res) => {
+  const k = await getKnowledge(req.params.key);
+  if (!k) return res.status(404).json({ error: 'not found' });
+  res.json({ knowledge: k });
+}));
+app.put('/api/admin/knowledge/:key', requireAdmin, h(async (req, res) => res.json({ knowledge: await upsertKnowledge({ ...req.body, key: req.params.key }) })));
+app.delete('/api/admin/knowledge/:key', requireAdmin, h(async (req, res) => res.json(await deleteKnowledge(req.params.key))));
 
-app.get('/api/admin/conversations/:id', requireAdmin, (req, res) => {
-  const conversation = getConversation(req.params.id);
-  if (!conversation) return res.status(404).json({ error: 'not found' });
-  res.json({ conversation });
-});
+// Leads
+app.get('/api/admin/leads', requireAdmin, h(async (req, res) => res.json({ leads: await listLeads(req.query) })));
+app.patch('/api/admin/leads/:id', requireAdmin, h(async (req, res) => res.json({ lead: await updateLead(req.params.id, req.body || {}) })));
+app.delete('/api/admin/leads/:id', requireAdmin, h(async (req, res) => res.json(await deleteLead(req.params.id))));
 
-app.get('/api/admin/rfqs', requireAdmin, (req, res) => res.json({ rfqs: listRfqs({ status: req.query.status }) }));
-app.get('/api/admin/listings', requireAdmin, (req, res) => res.json({ listings: listListings({ status: req.query.status }) }));
-app.get('/api/admin/tickets', requireAdmin, (req, res) => res.json({ tickets: listTickets({ status: req.query.status }) }));
-app.get('/api/admin/escalations', requireAdmin, (req, res) =>
-  res.json({ escalations: listEscalations({ status: req.query.status }) })
-);
+// Conversations
+app.get('/api/admin/conversations', requireAdmin, h(async (req, res) => res.json({ conversations: await listConversations(req.query) })));
+app.get('/api/admin/conversations/:id', requireAdmin, h(async (req, res) => {
+  const c = await getConversation(req.params.id);
+  if (!c) return res.status(404).json({ error: 'not found' });
+  res.json({ conversation: c });
+}));
+app.patch('/api/admin/conversations/:id', requireAdmin, h(async (req, res) => res.json({ conversation: await updateConversation(req.params.id, req.body || {}) })));
+app.delete('/api/admin/conversations/:id', requireAdmin, h(async (req, res) => res.json(await deleteConversation(req.params.id))));
 
-// Back-compat alias for the original endpoint.
-app.get('/api/leads', requireAdmin, (req, res) => {
-  const { tier, status } = req.query;
-  res.json({ leads: listLeads({ tier, status }) });
-});
+// Suppliers (CRUD)
+app.get('/api/admin/suppliers', requireAdmin, h(async (req, res) => res.json({ suppliers: await listSuppliers(req.query) })));
+app.post('/api/admin/suppliers', requireAdmin, h(async (req, res) => res.json({ supplier: await createSupplier(req.body || {}) })));
+app.patch('/api/admin/suppliers/:id', requireAdmin, h(async (req, res) => res.json({ supplier: await updateSupplier(req.params.id, req.body || {}) })));
+app.delete('/api/admin/suppliers/:id', requireAdmin, h(async (req, res) => res.json(await deleteSupplier(req.params.id))));
 
-app.listen(CONFIG.port, () => console.log(`XB2BX Assistant backend (OpenAI ${CONFIG.mainModel}) on :${CONFIG.port}`));
+// Products (CRUD)
+app.get('/api/admin/products', requireAdmin, h(async (req, res) => res.json({ products: await listProducts(req.query) })));
+app.post('/api/admin/products', requireAdmin, h(async (req, res) => res.json({ product: await createProduct(req.body || {}) })));
+app.patch('/api/admin/products/:id', requireAdmin, h(async (req, res) => res.json({ product: await updateProduct(req.params.id, req.body || {}) })));
+app.delete('/api/admin/products/:id', requireAdmin, h(async (req, res) => res.json(await deleteProduct(req.params.id))));
+
+// RFQs
+app.get('/api/admin/rfqs', requireAdmin, h(async (req, res) => res.json({ rfqs: await listRfqs(req.query) })));
+app.patch('/api/admin/rfqs/:id', requireAdmin, h(async (req, res) => res.json({ rfq: await updateRfq(req.params.id, req.body || {}) })));
+app.delete('/api/admin/rfqs/:id', requireAdmin, h(async (req, res) => res.json(await deleteRfq(req.params.id))));
+
+// Listings
+app.get('/api/admin/listings', requireAdmin, h(async (req, res) => res.json({ listings: await listListings(req.query) })));
+app.patch('/api/admin/listings/:id', requireAdmin, h(async (req, res) => res.json({ listing: await updateListing(req.params.id, req.body || {}) })));
+app.delete('/api/admin/listings/:id', requireAdmin, h(async (req, res) => res.json(await deleteListing(req.params.id))));
+
+// Tickets
+app.get('/api/admin/tickets', requireAdmin, h(async (req, res) => res.json({ tickets: await listTickets(req.query) })));
+app.patch('/api/admin/tickets/:id', requireAdmin, h(async (req, res) => res.json({ ticket: await updateTicket(req.params.id, req.body || {}) })));
+app.delete('/api/admin/tickets/:id', requireAdmin, h(async (req, res) => res.json(await deleteTicket(req.params.id))));
+
+// Escalations
+app.get('/api/admin/escalations', requireAdmin, h(async (req, res) => res.json({ escalations: await listEscalations(req.query) })));
+app.patch('/api/admin/escalations/:id', requireAdmin, h(async (req, res) => res.json({ escalation: await updateEscalation(req.params.id, req.body || {}) })));
+app.delete('/api/admin/escalations/:id', requireAdmin, h(async (req, res) => res.json(await deleteEscalation(req.params.id))));
+
+app.listen(CONFIG.port, () => console.log(`XB2BX Assistant backend (OpenAI + Supabase) on :${CONFIG.port}`));

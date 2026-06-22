@@ -1,20 +1,9 @@
 /**
- * Support repository — support tickets and human-handoff escalations.
+ * Support repository (Supabase) — support tickets + human-handoff escalations.
  */
-import db from '../db/index.js';
+import { supabase, unwrap, clean } from '../db/supabase.js';
 
-const insertTicket = db.prepare(`
-  INSERT INTO support_tickets (id, subject, description, contact_email, priority, status)
-  VALUES (@id, @subject, @description, @contact_email, @priority, @status)
-`);
-
-const insertEscalation = db.prepare(`
-  INSERT INTO escalations (id, reason, contact_email, contact_phone, status)
-  VALUES (@id, @reason, @contact_email, @contact_phone, @status)
-`);
-
-/** Open a support ticket. Returns the stored record. */
-export function createTicket(input = {}) {
+export async function createTicket(input = {}) {
   const row = {
     id: 'TKT-' + Date.now(),
     subject: input.subject || '',
@@ -23,12 +12,10 @@ export function createTicket(input = {}) {
     priority: ['low', 'normal', 'high'].includes(input.priority) ? input.priority : 'normal',
     status: 'open'
   };
-  insertTicket.run(row);
-  return { ...row, next_step: 'Ticket opened. The team will follow up; share the ticket id with the user.' };
+  const saved = unwrap(await supabase.from('support_tickets').insert(row).select().single(), 'createTicket');
+  return { ...saved, next_step: 'Ticket opened. The team will follow up; share the ticket id with the user.' };
 }
-
-/** Queue a human-handoff escalation. Returns the stored record. */
-export function createEscalation(input = {}) {
+export async function createEscalation(input = {}) {
   const row = {
     id: 'ESC-' + Date.now(),
     reason: input.reason || '',
@@ -36,24 +23,32 @@ export function createEscalation(input = {}) {
     contact_phone: input.contact_phone || '',
     status: 'queued'
   };
-  insertEscalation.run(row);
-  return {
-    ...row,
-    queue: 'live-agents',
-    next_step: 'Escalated to a human agent. Reassure the user that the team will reach out.'
-  };
+  const saved = unwrap(await supabase.from('escalations').insert(row).select().single(), 'createEscalation');
+  return { ...saved, queue: 'live-agents', next_step: 'Escalated to a human agent. Reassure the user that the team will reach out.' };
 }
 
-/** Read tickets for the admin dashboard. */
-export function listTickets({ status, limit = 50 } = {}) {
-  const where = status ? 'WHERE status = @status' : '';
-  const params = status ? { status, limit } : { limit };
-  return db.prepare(`SELECT * FROM support_tickets ${where} ORDER BY created_at DESC LIMIT @limit`).all(params);
+export async function listTickets({ status, limit = 200 } = {}) {
+  let q = supabase.from('support_tickets').select('*').order('created_at', { ascending: false }).limit(limit);
+  if (status) q = q.eq('status', status);
+  return unwrap(await q, 'listTickets');
+}
+export async function updateTicket(id, patch = {}) {
+  return unwrap(await supabase.from('support_tickets').update(clean(patch)).eq('id', id).select().single(), 'updateTicket');
+}
+export async function deleteTicket(id) {
+  unwrap(await supabase.from('support_tickets').delete().eq('id', id), 'deleteTicket');
+  return { id, deleted: true };
 }
 
-/** Read escalations for the admin dashboard. */
-export function listEscalations({ status, limit = 50 } = {}) {
-  const where = status ? 'WHERE status = @status' : '';
-  const params = status ? { status, limit } : { limit };
-  return db.prepare(`SELECT * FROM escalations ${where} ORDER BY created_at DESC LIMIT @limit`).all(params);
+export async function listEscalations({ status, limit = 200 } = {}) {
+  let q = supabase.from('escalations').select('*').order('created_at', { ascending: false }).limit(limit);
+  if (status) q = q.eq('status', status);
+  return unwrap(await q, 'listEscalations');
+}
+export async function updateEscalation(id, patch = {}) {
+  return unwrap(await supabase.from('escalations').update(clean(patch)).eq('id', id).select().single(), 'updateEscalation');
+}
+export async function deleteEscalation(id) {
+  unwrap(await supabase.from('escalations').delete().eq('id', id), 'deleteEscalation');
+  return { id, deleted: true };
 }

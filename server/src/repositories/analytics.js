@@ -1,31 +1,46 @@
 /**
- * Analytics — aggregate counts for the admin dashboard.
+ * Analytics (Supabase) — aggregate counts for the admin dashboard.
  */
-import db from '../db/index.js';
+import { supabase } from '../db/supabase.js';
 
-const count = (sql, params = {}) => db.prepare(sql).get(params)?.n ?? 0;
+async function count(table, filters = []) {
+  let q = supabase.from(table).select('*', { count: 'exact', head: true });
+  for (const [col, val] of filters) q = q.eq(col, val);
+  const { count: n } = await q;
+  return n || 0;
+}
 
-/** A snapshot of platform activity for the dashboard. */
-export function getStats() {
+export async function getStats() {
+  const [
+    conversations, messages, leadsTotal, leadsQualified, leadsHot, leadsWarm, leadsCold,
+    rfqs, listings, ticketsTotal, ticketsOpen, escalations, suppliers, products
+  ] = await Promise.all([
+    count('conversations'),
+    count('messages'),
+    count('leads'),
+    count('leads', [['qualified', 1]]),
+    count('leads', [['tier', 'hot']]),
+    count('leads', [['tier', 'warm']]),
+    count('leads', [['tier', 'cold']]),
+    count('rfqs'),
+    count('listings'),
+    count('support_tickets'),
+    count('support_tickets', [['status', 'open']]),
+    count('escalations'),
+    count('suppliers'),
+    count('products')
+  ]);
+
   return {
-    conversations: count('SELECT COUNT(*) AS n FROM conversations'),
-    messages: count('SELECT COUNT(*) AS n FROM messages'),
-    leads: {
-      total: count('SELECT COUNT(*) AS n FROM leads'),
-      qualified: count('SELECT COUNT(*) AS n FROM leads WHERE qualified = 1'),
-      hot: count("SELECT COUNT(*) AS n FROM leads WHERE tier = 'hot'"),
-      warm: count("SELECT COUNT(*) AS n FROM leads WHERE tier = 'warm'"),
-      cold: count("SELECT COUNT(*) AS n FROM leads WHERE tier = 'cold'")
-    },
-    rfqs: count('SELECT COUNT(*) AS n FROM rfqs'),
-    listings: count('SELECT COUNT(*) AS n FROM listings'),
-    tickets: {
-      total: count('SELECT COUNT(*) AS n FROM support_tickets'),
-      open: count("SELECT COUNT(*) AS n FROM support_tickets WHERE status = 'open'")
-    },
-    escalations: count('SELECT COUNT(*) AS n FROM escalations'),
-    suppliers: count('SELECT COUNT(*) AS n FROM suppliers'),
-    products: count('SELECT COUNT(*) AS n FROM products'),
+    conversations,
+    messages,
+    leads: { total: leadsTotal, qualified: leadsQualified, hot: leadsHot, warm: leadsWarm, cold: leadsCold },
+    rfqs,
+    listings,
+    tickets: { total: ticketsTotal, open: ticketsOpen },
+    escalations,
+    suppliers,
+    products,
     generated_at: new Date().toISOString()
   };
 }

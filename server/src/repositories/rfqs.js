@@ -1,15 +1,9 @@
 /**
- * RFQ repository — persist Requests For Quote created by the assistant.
+ * RFQ repository (Supabase).
  */
-import db from '../db/index.js';
+import { supabase, unwrap, clean } from '../db/supabase.js';
 
-const insert = db.prepare(`
-  INSERT INTO rfqs (id, product, quantity, target_country, delivery_timeline, contact_email, notes, status)
-  VALUES (@id, @product, @quantity, @target_country, @delivery_timeline, @contact_email, @notes, @status)
-`);
-
-/** Create an RFQ. Returns the stored record + guidance for the assistant. */
-export function createRfq(input = {}) {
+export async function createRfq(input = {}) {
   const row = {
     id: 'RFQ-' + Date.now(),
     product: input.product || '',
@@ -20,17 +14,18 @@ export function createRfq(input = {}) {
     notes: input.notes || '',
     status: 'created'
   };
-  insert.run(row);
-  return {
-    ...row,
-    next_step:
-      'RFQ created. It will be routed to matched verified suppliers; quotes come back to the buyer. Offer to capture a contact email if not provided.'
-  };
+  const saved = unwrap(await supabase.from('rfqs').insert(row).select().single(), 'createRfq');
+  return { ...saved, next_step: 'RFQ created and routed to matched verified suppliers; quotes return to the buyer.' };
 }
-
-/** Read RFQs for the admin dashboard. */
-export function listRfqs({ status, limit = 50 } = {}) {
-  const where = status ? 'WHERE status = @status' : '';
-  const params = status ? { status, limit } : { limit };
-  return db.prepare(`SELECT * FROM rfqs ${where} ORDER BY created_at DESC LIMIT @limit`).all(params);
+export async function listRfqs({ status, limit = 200 } = {}) {
+  let q = supabase.from('rfqs').select('*').order('created_at', { ascending: false }).limit(limit);
+  if (status) q = q.eq('status', status);
+  return unwrap(await q, 'listRfqs');
+}
+export async function updateRfq(id, patch = {}) {
+  return unwrap(await supabase.from('rfqs').update(clean(patch)).eq('id', id).select().single(), 'updateRfq');
+}
+export async function deleteRfq(id) {
+  unwrap(await supabase.from('rfqs').delete().eq('id', id), 'deleteRfq');
+  return { id, deleted: true };
 }

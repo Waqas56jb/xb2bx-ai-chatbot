@@ -1,15 +1,9 @@
 /**
- * Listing repository — persist seller product listings drafted by the assistant.
+ * Listing repository (Supabase).
  */
-import db from '../db/index.js';
+import { supabase, unwrap, clean } from '../db/supabase.js';
 
-const insert = db.prepare(`
-  INSERT INTO listings (id, title, category, description, price, seller_email, status)
-  VALUES (@id, @title, @category, @description, @price, @seller_email, @status)
-`);
-
-/** Create a draft listing. Returns the stored record. */
-export function createListing(input = {}) {
+export async function createListing(input = {}) {
   const row = {
     id: 'LST-' + Date.now(),
     title: input.title || '',
@@ -19,13 +13,18 @@ export function createListing(input = {}) {
     seller_email: input.seller_email || '',
     status: 'draft'
   };
-  insert.run(row);
-  return { ...row, next_step: 'Draft listing saved for the seller to review and publish.' };
+  const saved = unwrap(await supabase.from('listings').insert(row).select().single(), 'createListing');
+  return { ...saved, next_step: 'Draft listing saved for the seller to review and publish.' };
 }
-
-/** Read listings for the admin dashboard. */
-export function listListings({ status, limit = 50 } = {}) {
-  const where = status ? 'WHERE status = @status' : '';
-  const params = status ? { status, limit } : { limit };
-  return db.prepare(`SELECT * FROM listings ${where} ORDER BY created_at DESC LIMIT @limit`).all(params);
+export async function listListings({ status, limit = 200 } = {}) {
+  let q = supabase.from('listings').select('*').order('created_at', { ascending: false }).limit(limit);
+  if (status) q = q.eq('status', status);
+  return unwrap(await q, 'listListings');
+}
+export async function updateListing(id, patch = {}) {
+  return unwrap(await supabase.from('listings').update(clean(patch)).eq('id', id).select().single(), 'updateListing');
+}
+export async function deleteListing(id) {
+  unwrap(await supabase.from('listings').delete().eq('id', id), 'deleteListing');
+  return { id, deleted: true };
 }
