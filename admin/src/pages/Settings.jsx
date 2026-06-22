@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader, Spinner, ErrorNote, Button, Field } from '../components/ui.jsx';
 
@@ -87,7 +88,7 @@ export default function Settings() {
       </div>
 
       <div className="settings-save">
-        <Button onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save settings'}</Button>
+        <Button onClick={save} disabled={saving}><Check size={15} strokeWidth={2.4} /> {saving ? 'Saving…' : 'Save settings'}</Button>
       </div>
     </div>
   );

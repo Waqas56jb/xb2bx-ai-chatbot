@@ -4,7 +4,7 @@
  */
 export const CONFIG = {
   // Backend
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8787/api/chat',
+  apiUrl: import.meta.env.VITE_API_URL || 'https://xb2bx-ai-chatbot-backend.vercel.app/api/chat',
 
   // Branding
   brand: 'XB2BX',

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader, Spinner, ErrorNote, Empty } from '../components/ui.jsx';
 
@@ -36,7 +37,7 @@ export default function Rfqs() {
                       {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
-                  <td><button className="btn btn-ghost btn-sm" onClick={() => remove(r.id)}>Delete</button></td>
+                  <td><button className="btn btn-ghost btn-sm" onClick={() => remove(r.id)}><Trash2 size={14} /> Delete</button></td>
                 </tr>
               ))}
             </tbody>

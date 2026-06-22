@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Plus, SquarePen, Trash2, Check } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader, Spinner, ErrorNote, Empty, Button, Modal, Field } from '../components/ui.jsx';
 
@@ -30,7 +31,7 @@ export default function Products() {
       <PageHeader
         title="Products"
         subtitle="The catalogue the assistant can search"
-        actions={<Button onClick={() => setEditing({ ...BLANK })}>+ Add product</Button>}
+        actions={<Button onClick={() => setEditing({ ...BLANK })}><Plus size={15} strokeWidth={2.4} /> Add product</Button>}
       />
       <ErrorNote>{error}</ErrorNote>
       {!items ? <Spinner /> : items.length === 0 ? <Empty>No products.</Empty> : (
@@ -46,8 +47,8 @@ export default function Products() {
                   <td>{p.price}</td>
                   <td className="mono small">{p.supplier_id || '—'}</td>
                   <td className="nowrap">
-                    <button className="btn btn-ghost btn-sm" onClick={() => setEditing({ ...p })}>Edit</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => remove(p.id)}>Delete</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setEditing({ ...p })}><SquarePen size={14} /> Edit</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => remove(p.id)}><Trash2 size={14} /> Delete</button>
                   </td>
                 </tr>
               ))}
@@ -60,7 +61,7 @@ export default function Products() {
         <Modal
           title={editing.id ? `Edit ${editing.title}` : 'Add product'}
           onClose={() => setEditing(null)}
-          footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}>Save</Button></>}
+          footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}><Check size={15} strokeWidth={2.4} /> Save</Button></>}
         >
           <div className="form-grid">
             <Field label="Title"><input className="input" value={editing.title} onChange={(e) => set('title', e.target.value)} /></Field>

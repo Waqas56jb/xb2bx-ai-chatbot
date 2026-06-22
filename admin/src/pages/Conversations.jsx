@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader, Spinner, ErrorNote, Empty, Modal, Badge } from '../components/ui.jsx';
 
@@ -48,7 +49,7 @@ export default function Conversations() {
                   <td>{c.message_count}</td>
                   <td className="truncate">{c.last_message}</td>
                   <td className="muted small">{new Date(c.updated_at).toLocaleString()}</td>
-                  <td><button className="btn btn-ghost btn-sm" onClick={(e) => remove(c.id, e)}>Delete</button></td>
+                  <td><button className="btn btn-ghost btn-sm" onClick={(e) => remove(c.id, e)}><Trash2 size={14} /> Delete</button></td>
                 </tr>
               ))}
             </tbody>

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
 
 export function Spinner({ label = 'Loading…' }) {
   return (
@@ -11,12 +12,21 @@ export function Spinner({ label = 'Loading…' }) {
 
 export function ErrorNote({ children }) {
   if (!children) return null;
-  return <div className="error-note">⚠️ {children}</div>;
+  return (
+    <div className="error-note">
+      <AlertTriangle size={15} strokeWidth={2.2} /> {children}
+    </div>
+  );
 }
 
-export function StatCard({ label, value, sub }) {
+export function StatCard({ label, value, sub, icon: Icon }) {
   return (
     <div className="stat-card">
+      {Icon && (
+        <span className="stat-icon">
+          <Icon size={20} strokeWidth={2} />
+        </span>
+      )}
       <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
       {sub && <div className="stat-sub">{sub}</div>}
@@ -59,7 +69,7 @@ export function Modal({ title, onClose, children, footer, wide }) {
         <div className="modal-head">
           <h3>{title}</h3>
           <button className="modal-x" onClick={onClose} aria-label="Close">
-            ✕
+            <X size={18} strokeWidth={2} />
           </button>
         </div>
         <div className="modal-body">{children}</div>

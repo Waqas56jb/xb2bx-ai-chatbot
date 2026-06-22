@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
 import { login } from '../api.js';
 import { setToken } from '../auth.js';
 import { CONFIG } from '../config.js';
@@ -30,7 +31,7 @@ export default function Login() {
   return (
     <div className="login">
       <form className="login-card" onSubmit={submit}>
-        <div className="login-badge">＋</div>
+        <div className="login-badge"><ShieldCheck size={30} strokeWidth={2} /></div>
         <h1 className="login-title">{CONFIG.brand} Admin</h1>
         <p className="login-sub">Sign in to manage your assistant.</p>
 

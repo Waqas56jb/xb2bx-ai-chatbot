@@ -33,15 +33,15 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
   color: #f3efe6; display: flex; flex-direction: column; padding: 22px 16px; position: sticky; top: 0; height: 100vh;
 }
 .brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 22px; }
-.brand-badge { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.brand-badge { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; }
 .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 600; }
 .brand-sub { font-size: 11px; letter-spacing: 1px; opacity: 0.75; }
 .nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
 .nav-item { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-radius: 11px; color: #e9e3d6; text-decoration: none; font-size: 14px; font-weight: 500; transition: background 0.14s ease; }
 .nav-item:hover { background: rgba(255, 255, 255, 0.1); }
 .nav-item.active { background: rgba(255, 255, 255, 0.18); color: #fff; }
-.nav-icon { font-size: 16px; }
-.logout { margin-top: 16px; background: rgba(255, 255, 255, 0.1); color: #f3efe6; border: none; border-radius: 11px; padding: 11px; font-family: var(--sans); font-size: 13px; cursor: pointer; }
+.nav-icon { display: inline-flex; align-items: center; justify-content: center; opacity: 0.9; }
+.logout { margin-top: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255, 255, 255, 0.1); color: #f3efe6; border: none; border-radius: 11px; padding: 11px; font-family: var(--sans); font-size: 13px; cursor: pointer; }
 .logout:hover { background: rgba(255, 255, 255, 0.2); }
 .content { flex: 1; padding: 32px 36px; max-width: 1200px; overflow-x: hidden; }
 
@@ -52,7 +52,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 .section-title { font-family: var(--serif); font-size: 18px; margin: 22px 0 12px; }
 
 /* ---------- Buttons ---------- */
-.btn { border: none; border-radius: 999px; padding: 11px 20px; font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.14s ease, transform 0.1s ease; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 999px; padding: 11px 20px; font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.14s ease, transform 0.1s ease; }
+.btn svg { flex-shrink: 0; }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
@@ -62,7 +63,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 
 /* ---------- Stat cards ---------- */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-.stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.stat-card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.stat-icon { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; background: rgba(108, 98, 74, 0.12); color: var(--gold); display: flex; align-items: center; justify-content: center; }
 .stat-value { font-family: var(--serif); font-size: 34px; font-weight: 600; line-height: 1; }
 .stat-label { color: var(--ink); font-weight: 600; margin-top: 8px; font-size: 14px; }
 .stat-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
@@ -105,7 +107,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 .modal-wide { width: 760px; }
 .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--line); }
 .modal-head h3 { font-family: var(--serif); font-size: 19px; }
-.modal-x { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--muted); }
+.modal-x { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--muted); }
+.modal-x:hover { color: var(--ink); }
 .modal-body { padding: 20px 22px; overflow-y: auto; }
 .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line); }
 
@@ -136,13 +139,13 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 .spinner-dot { width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { padding: 40px; text-align: center; color: var(--muted); background: var(--panel); border: 1px dashed var(--line); border-radius: 16px; }
-.error-note { background: rgba(192, 73, 47, 0.1); color: var(--danger); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13.5px; }
+.error-note { display: flex; align-items: center; gap: 8px; background: rgba(192, 73, 47, 0.1); color: var(--danger); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13.5px; }
 .success-note { background: rgba(47, 158, 84, 0.12); color: var(--success); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13.5px; }
 
 /* ---------- Login ---------- */
 .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #2c2820, #0a0a0a); padding: 24px; }
 .login-card { background: var(--panel); border-radius: 22px; padding: 38px 34px; width: 380px; max-width: 100%; text-align: center; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45); display: flex; flex-direction: column; gap: 4px; }
-.login-badge { width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.login-badge { width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
 .login-title { font-family: var(--serif); font-size: 26px; }
 .login-sub { color: var(--muted); font-size: 13.5px; margin-bottom: 14px; }
 .login-input { border: 1px solid var(--line); border-radius: 12px; padding: 13px 16px; font-size: 14px; font-family: var(--sans); margin-bottom: 14px; outline: none; }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Plus, SquarePen, Trash2, Check, Eye, EyeOff } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader, Spinner, ErrorNote, Empty, Button, Modal, Field, Badge } from '../components/ui.jsx';
 
@@ -37,7 +38,7 @@ export default function Training() {
       <PageHeader
         title="Training"
         subtitle="Edit the knowledge the assistant uses to answer. Changes apply within seconds."
-        actions={<Button onClick={() => setEditing({ ...BLANK })}>+ Add section</Button>}
+        actions={<Button onClick={() => setEditing({ ...BLANK })}><Plus size={15} strokeWidth={2.4} /> Add section</Button>}
       />
       <ErrorNote>{error}</ErrorNote>
       {!items ? <Spinner /> : items.length === 0 ? <Empty>No knowledge sections.</Empty> : (
@@ -53,9 +54,9 @@ export default function Training() {
               </div>
               <p className="kb-excerpt">{(k.content || '').replace(/[#*`]/g, '').slice(0, 160)}…</p>
               <div className="kb-actions">
-                <button className="btn btn-ghost btn-sm" onClick={() => setEditing({ ...k })}>Edit</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => toggle(k)}>{k.enabled ? 'Disable' : 'Enable'}</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => remove(k.key)}>Delete</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setEditing({ ...k })}><SquarePen size={14} /> Edit</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => toggle(k)}>{k.enabled ? <><EyeOff size={14} /> Disable</> : <><Eye size={14} /> Enable</>}</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => remove(k.key)}><Trash2 size={14} /> Delete</button>
               </div>
             </div>
           ))}
@@ -67,7 +68,7 @@ export default function Training() {
           title={editing.key ? `Edit: ${editing.key}` : 'New knowledge section'}
           onClose={() => setEditing(null)}
           wide
-          footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save} disabled={saving || !editing.key}>{saving ? 'Saving…' : 'Save'}</Button></>}
+          footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save} disabled={saving || !editing.key}><Check size={15} strokeWidth={2.4} /> {saving ? 'Saving…' : 'Save'}</Button></>}
         >
           <div className="form-grid">
             <Field label="Key (lowercase, no spaces)" hint="e.g. membership, logistics">

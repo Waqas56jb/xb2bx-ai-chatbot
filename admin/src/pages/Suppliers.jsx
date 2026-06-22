@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Plus, SquarePen, Trash2, Check } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader, Spinner, ErrorNote, Empty, Button, Modal, Field, Badge } from '../components/ui.jsx';
 
@@ -34,7 +35,7 @@ export default function Suppliers() {
       <PageHeader
         title="Suppliers"
         subtitle="The verified supplier directory the assistant searches"
-        actions={<Button onClick={() => setEditing({ ...BLANK })}>+ Add supplier</Button>}
+        actions={<Button onClick={() => setEditing({ ...BLANK })}><Plus size={15} strokeWidth={2.4} /> Add supplier</Button>}
       />
       <ErrorNote>{error}</ErrorNote>
       {!items ? <Spinner /> : items.length === 0 ? <Empty>No suppliers.</Empty> : (
@@ -51,8 +52,8 @@ export default function Suppliers() {
                   <td>{s.verified ? <Badge tone="success">verified</Badge> : <Badge>no</Badge>}</td>
                   <td>{s.rating}</td>
                   <td className="nowrap">
-                    <button className="btn btn-ghost btn-sm" onClick={() => setEditing({ ...s, verified: !!s.verified })}>Edit</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => remove(s.id)}>Delete</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setEditing({ ...s, verified: !!s.verified })}><SquarePen size={14} /> Edit</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => remove(s.id)}><Trash2 size={14} /> Delete</button>
                   </td>
                 </tr>
               ))}
@@ -65,7 +66,7 @@ export default function Suppliers() {
         <Modal
           title={editing.id ? `Edit ${editing.name}` : 'Add supplier'}
           onClose={() => setEditing(null)}
-          footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}>Save</Button></>}
+          footer={<><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={save}><Check size={15} strokeWidth={2.4} /> Save</Button></>}
         >
           <div className="form-grid">
             <Field label="Name"><input className="input" value={editing.name} onChange={(e) => set('name', e.target.value)} /></Field>
