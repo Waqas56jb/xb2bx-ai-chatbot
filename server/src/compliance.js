@@ -45,8 +45,8 @@ export const COMPLIANCE = `
   support", "aims to". Describe what the platform helps with — never guarantee.
 - Never promise guaranteed outcomes. Do NOT use: "guaranteed", "eliminates",
   "zero risk", "risk-free", "ensures", "always", or similar absolutes.
-- Payments, escrow, and trade finance are provided by regulated third-party
-  partners — not by XB2BX directly. Say so whenever money is involved.
+- Payments are handled securely on-platform via XCU Credit Units. XB2BX is not a
+  bank, lender, or broker — say so whenever money is involved.
 - Never give financial, legal, tax, or regulatory advice. Point the user to a
   qualified professional or the XB2BX team.
 - Figures, certifications, and example results are illustrative unless they come

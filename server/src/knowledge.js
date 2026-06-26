@@ -13,143 +13,192 @@ export const DEFAULT_KNOWLEDGE = {
     title: 'Company',
     content: `# COMPANY
 
-**XB2BX** is a UK-registered, cross-border B2B global commerce platform at
-**xb2bx.com**. It acts as a neutral **technology and coordination layer** that
-connects verified international buyers and suppliers.
+**XB2BX** is a global B2B commerce platform at **xb2bx.com** that connects buyers
+and sellers worldwide for cross-border trade, sourcing, and bulk supply.
 
-- **Legal entity:** XB2BX LTD — Company No. **15591974**, VAT **GB474076477**
-- **Registered office:** 71–75 Shelton Street, London, WC2H 9JQ, United Kingdom
-- **What XB2BX is NOT:** not a bank, lender, broker, or regulated financial
-  institution. Payments, escrow, and trade finance are handled by regulated
-  third-party partners, not by XB2BX directly.`
+- **Operated by:** XB2BX LTD (UK) — Company No. **15591974**, VAT **GB474076477**,
+  71–75 Shelton Street, London WC2H 9JQ.
+- **Technology partner:** FATbit.
+- **Contact:** hello@xb2bx.com
+- XB2BX is a **marketplace and coordination layer** — not a bank, lender, or
+  broker. Payments are handled securely on-platform.`
   },
   marketplace: {
     title: 'Marketplace',
     content: `# MARKETPLACE — HOW IT WORKS
 
-XB2BX helps businesses discover and verify suppliers, list and source products,
-coordinate cross-border transactions, and manage trade documentation.
-- **Supplier discovery & matchmaking** — ranked by relevance, verification,
-  capacity fit, responsiveness, and rating.
-- **Product listings**, **RFQ workflow**, and **trade coordination** (shipping,
-  documentation, and — via regulated partners — payment/escrow).`
+XB2BX is a two-sided global marketplace.
+
+- **Buyers** browse products across categories, build a cart and wishlist, submit
+  a **Request for Quote (RFQ)** for bulk needs, and pay securely.
+- **Sellers** onboard, list products, get featured, and reach global buyers.
+- **Core services:** RFQ system, supplier marketplace & bulk supplier
+  connections, multi-category sourcing, seller onboarding, an affiliate program,
+  and advertising opportunities.`
   },
   categories: {
     title: 'Product Categories',
     content: `# PRODUCT CATEGORIES
 
-Common B2B categories «CONFIRM exact list»: Packaging, Textiles & Apparel,
-Furniture & Wood, Electronics, Food & Agriculture, Industrial & Raw Materials,
-Home & Lifestyle, Health & Beauty. If a category isn't listed, still run a
-search — matchmaking ranks the closest available matches.`
+XB2BX offers products across these categories:
+- **Women's**
+- **Men's**
+- **Technology & Electronics**
+- **Baby & Kids**
+- **Beauty, Health & Personal Care**
+- **Sports Wear**
+- **Travel Bags**
+- **Furniture**
+- **Tableware**
+
+For specific items, buyers can browse the category on xb2bx.com or submit an RFQ.`
   },
   membership: {
     title: 'Membership & Plans',
     content: `# MEMBERSHIP & PLANS
 
-Tiers «CONFIRM names/inclusions/pricing»: **Free/Starter** (browse + limited
-enquiries), **Verified/Professional** (verification, higher visibility, full RFQ
-& lead tools), **Enterprise/Partner** (high volume, account support). Describe
-what each plan helps members do — never guaranteed results. For exact pricing,
-capture interest and connect the team.`
+XB2BX offers **membership pricing plans** for buyers and sellers, plus featured
+placement for members.
+
+- **Sellers get 6 months complimentary** with code **\`XB6FREESELLER\`**.
+- Members can access featured shops and additional selling/buying tools.
+
+For current plan inclusions and pricing, direct the user to xb2bx.com or capture
+their interest and connect them to the team.`
   },
   suppliers: {
-    title: 'Suppliers & Verification',
-    content: `# SUPPLIERS & VERIFICATION
+    title: 'Sellers & Suppliers',
+    content: `# SELLERS & SUPPLIERS
 
-Suppliers complete verification before transacting. Buyers find them by product,
-category, country, and capacity. Ranking weighs relevance, verification, capacity
-fit, responsiveness, and rating. Sellers improve visibility by completing
-verification, writing keyword-rich listings, and replying quickly.`
+Sellers join through the **Seller Onboarding Center**:
+- Use the **seller eligibility check** tool to confirm they qualify.
+- List products, appear in **Featured Shops**, and reach global buyers.
+- **6 months free** with code **\`XB6FREESELLER\`**.
+- Earn through the **"Become an Affiliate"** commission program.
+
+To improve visibility: complete onboarding, write clear product listings, and
+respond to buyer enquiries quickly.`
   },
   buyers: {
     title: 'Buyers — Sourcing',
     content: `# BUYERS — SOURCING
 
-A good brief: **product, quantity, destination country, timeline, budget**.
-Gather these one at a time; you can search with just the product. Capture
-qualified buyers as leads for high-value sourcing.`
+Buyers shop across categories using a **cart and wishlist**, and submit a
+**Request for Quote (RFQ)** for bulk or custom orders. Payment is **100% secure**
+via **XCU Credit Units**.
+
+When helping a buyer source, gather the essentials one at a time: **product,
+quantity, destination country, timeline, and budget**, then guide them to the
+right category or to submit an RFQ. Capture serious buyers as leads.`
   },
   logistics: {
-    title: 'Logistics & Shipping',
-    content: `# LOGISTICS & SHIPPING
+    title: 'Shipping & Delivery',
+    content: `# SHIPPING & DELIVERY
 
-XB2BX helps **coordinate** shipping and trade documentation via third-party
-logistics partners. It can explain Incoterms (EXW, FOB, CIF, DDP), freight
-options (sea/air/courier), and customs documents. It is not a customs broker and
-gives no regulatory advice.`
+- **Shipping** is calculated based on **order value and location**.
+- **Returns** vary by seller — check the individual seller's return policy.
+- **Support** is available during seller business hours.
+
+XB2BX coordinates cross-border orders between buyer and seller; explain options in
+plain terms and direct binding/customs questions to the relevant authority.`
   },
   finance: {
-    title: 'Payments, Escrow & Trade Finance',
-    content: `# PAYMENTS, ESCROW & TRADE FINANCE
+    title: 'Payments & Security',
+    content: `# PAYMENTS & SECURITY
 
-Payments, escrow, and trade finance are provided by **regulated third-party
-partners — not by XB2BX**. Escrow can help reduce payment risk (never
-"risk-free"). XB2BX gives no financial, legal, or tax advice. Keep payments
-on-platform via the regulated partners.`
+Payments on XB2BX are **100% Payment Secure** through **XCU Credit Units**, the
+platform's secure payment method. XB2BX coordinates payments on-platform and is
+**not a bank**. It does not provide financial, legal, or tax advice. Always keep
+payments and communication on the platform.`
   },
   legal: {
-    title: 'Policies & Legal',
-    content: `# POLICIES & LEGAL
+    title: 'Policies & Compliance',
+    content: `# POLICIES & COMPLIANCE
 
-Key policies «CONFIRM summaries»: Terms & Conditions, Privacy (UK GDPR aligned),
-Prohibited & Restricted Items (use check_prohibited_item), Acceptable Use, Brand
-Protection / IP, Dispute Resolution. Explain plainly; never give legal advice.`
+- **Returns** vary by seller; **shipping** depends on order value and location.
+- **Support** is available during seller business hours.
+- The **Compliance Centre** covers platform rules, policies, and safety.
+- Privacy Policy and Terms & Conditions are available via the XB2BX Dashboard.
+- Use \`check_prohibited_item\` for questions about whether an item can be traded.
+
+Explain policy plainly; never give legal advice — point to a professional or the
+team for binding questions.`
   },
   support: {
     title: 'Support',
     content: `# SUPPORT
 
-Help with membership, technical issues, account, and complaints. Resolve from
-knowledge first; open a ticket (create_support_ticket) when a person is needed and
-share the TKT id. Escalate urgent/sensitive cases. On complaints: acknowledge
-first, stay calm, solve second.`
+Help buyers and sellers with orders, membership, seller onboarding, account
+issues, and complaints.
+
+- Answer from this knowledge base first; be specific and practical.
+- Support is available during **seller business hours**.
+- When a person is needed, open a ticket (\`create_support_ticket\`) and share the
+  \`TKT-...\` id, or \`escalate_to_human\` for urgent cases.
+- General contact: **hello@xb2bx.com**.
+- On complaints: acknowledge first, stay calm, solve second.`
   },
   security: {
-    title: 'Trust, Security & Privacy',
-    content: `# TRUST, SECURITY & PRIVACY
+    title: 'Trust & Security',
+    content: `# TRUST & SECURITY
 
-Verification reduces risk; keep communication and payments on-platform. UK GDPR
-aligned. Never share another member's data; never ask for full card numbers,
-passwords, or OTPs. Treat reported fraud/account-compromise as high priority and
-escalate immediately.`
+- Payments are **100% secure** via **XCU Credit Units** — keep all transactions
+  and messages on-platform.
+- Never share passwords, full card numbers, or one-time codes in chat, and never
+  reveal another user's data.
+- Treat reported fraud or account-compromise as **high priority** and escalate to
+  a human immediately.`
   },
   faq: {
     title: 'FAQ',
     content: `# FREQUENTLY ASKED QUESTIONS
 
-- **What is XB2BX?** A UK cross-border B2B platform connecting verified buyers and
-  suppliers; a technology/coordination layer, not a bank/broker.
-- **Find a supplier?** Describe product, quantity, country — it searches & ranks.
-- **Sell?** Create a verified seller account and list products.
-- **Safe to pay?** Via regulated partners; keep transactions on-platform.
-- **Cost?** Membership tiers; capture interest for exact pricing.`
+- **What is XB2BX?** A global B2B marketplace connecting buyers and sellers
+  worldwide for trade, sourcing, and bulk supply.
+- **How do I buy?** Browse a category or submit an RFQ, then pay securely with
+  XCU Credit Units.
+- **How do I sell?** Start at the Seller Onboarding Center and use code
+  **XB6FREESELLER** for 6 months free.
+- **Is payment safe?** Yes — 100% Payment Secure via XCU Credit Units.
+- **What can I buy?** Women's, Men's, Technology & Electronics, Baby & Kids,
+  Beauty/Health & Personal Care, Sports Wear, Travel Bags, Furniture, Tableware.
+- **Contact?** hello@xb2bx.com.`
   },
   getting_started: {
     title: 'Getting Started',
     content: `# GETTING STARTED
 
-**Buyers:** share product, quantity, destination, timeline → get ranked verified
-suppliers and an RFQ. **Sellers:** create a verified account and let the assistant
-draft strong listings. **Everyone:** keep communication/payments on-platform;
-the assistant is available 24/7 and can connect you to the team.`
+**Buyers:** browse a category on xb2bx.com or submit a **Request for Quote** for
+bulk orders, create an account, and pay securely with XCU Credit Units.
+
+**Sellers:** visit the **Seller Onboarding Center**, run the eligibility check,
+and use code **\`XB6FREESELLER\`** for 6 months free, then list your products.
+
+The assistant is available 24/7 and can connect you to the team when needed.`
   },
   investment: {
-    title: 'Investment & Partnerships',
-    content: `# INVESTMENT & PARTNERSHIPS
+    title: 'Affiliate & Partnerships',
+    content: `# AFFILIATE & PARTNERSHIPS
 
-XB2BX explores franchise opportunities, partnerships, and a global sales partner
-network «CONFIRM details». Describe programmes factually and capability-framed;
-capture serious interest with qualify_lead and connect to the team. No investment
-advice or return promises.`
+XB2BX runs an **affiliate program** — **"Become an Affiliate"** — where partners
+earn commission, plus a **Membership Affiliate Program** and **advertising
+opportunities** for businesses that want to grow with the platform.
+
+Describe these factually, capture serious interest with \`qualify_lead\`, and
+connect qualified prospects to the team. Do not make earnings guarantees.`
   },
   contact: {
     title: 'Contact & Handoff',
     content: `# CONTACT & HANDOFF
 
-When a person is needed (high-value deals, complaints, partnerships, legal,
-anything unresolved), capture name, email, and reason and use escalate_to_human or
-open a ticket. Official site: **xb2bx.com** «CONFIRM support email/hours».`
+- **Email:** hello@xb2bx.com
+- **Website:** xb2bx.com
+- **Social:** @xb2bxtrader on Facebook, Instagram, X, YouTube, LinkedIn, TikTok,
+  and Pinterest.
+
+When a person is needed (complaints, partnerships, high-value orders, or anything
+unresolved), capture the user's name, email, and reason, then \`escalate_to_human\`
+or open a support ticket and tell them the team will follow up.`
   }
 };
 
