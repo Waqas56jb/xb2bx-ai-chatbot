@@ -1,24 +1,27 @@
 /* ============================================================
    XB2BX Assistant — chat widget styles
-   Palette: cream card · olive header · black pill buttons · serif headings
+   Palette: white surface · XB2BX red header & accents · serif headings
    ============================================================ */
 
 :root {
-  --bg: #0a0a0a;
-  --card: #f3efe6;
-  --card-2: #ece6da;
-  --header-from: #6c624a;
-  --header-to: #393425;
-  --ink: #20201c;
-  --muted: #8d8779;
-  --accent: #161513;
-  --accent-hover: #2c2a26;
+  --brand: rgb(255, 58, 89);
+  --brand-hover: rgb(228, 40, 70);
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --card-2: #fff0f2;
+  --chat: #f6f7f9;
+  --header-from: rgb(255, 58, 89);
+  --header-to: rgb(214, 36, 64);
+  --ink: #1f2027;
+  --muted: #8a8a93;
+  --accent: var(--brand);
+  --accent-hover: var(--brand-hover);
   --bubble-bot: #ffffff;
-  --bubble-user: #161513;
-  --line: rgba(0, 0, 0, 0.07);
+  --bubble-user: var(--brand);
+  --line: rgba(0, 0, 0, 0.08);
   --online: #46c06a;
   --radius: 24px;
-  --shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  --shadow: 0 30px 70px rgba(20, 20, 30, 0.28);
   --serif: 'Playfair Display', Georgia, serif;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -72,7 +75,7 @@ body {
   gap: 12px;
   padding: 16px 18px;
   background: linear-gradient(135deg, var(--header-from), var(--header-to));
-  color: #f6f2e9;
+  color: #ffffff;
 }
 
 .header-avatar {
@@ -80,13 +83,16 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
+.logo-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
 .online-dot {
   position: absolute;
@@ -154,7 +160,7 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--card);
+  background: var(--chat);
 }
 
 /* ---------- Welcome ---------- */
@@ -170,15 +176,17 @@ body {
 }
 
 .welcome-badge {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+  padding: 20px;
+  overflow: hidden;
+  box-shadow: 0 14px 34px rgba(255, 58, 89, 0.22);
+  border: 1px solid var(--line);
   margin-bottom: 18px;
 }
 
@@ -254,13 +262,15 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
+  background: #ffffff;
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   margin-bottom: 2px;
+  overflow: hidden;
+  padding: 4px;
 }
 
 .bubble {
@@ -275,12 +285,13 @@ body {
 .bubble-bot {
   background: var(--bubble-bot);
   color: var(--ink);
+  border: 1px solid var(--line);
   border-bottom-left-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 .bubble-user {
   background: var(--bubble-user);
-  color: #f4f1ea;
+  color: #ffffff;
   border-bottom-right-radius: 6px;
 }
 .bubble-text {
@@ -319,7 +330,7 @@ body {
 .markdown h2 { font-size: 16.5px; }
 .markdown h3 { font-size: 15px; }
 .markdown a {
-  color: #5b5230;
+  color: var(--brand);
   text-decoration: underline;
 }
 .markdown code {

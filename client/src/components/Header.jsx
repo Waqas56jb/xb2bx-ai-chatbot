@@ -1,11 +1,11 @@
 import { CONFIG } from '../config.js';
-import { PlusIcon, CloseIcon } from '../icons.jsx';
+import { CloseIcon } from '../icons.jsx';
 
 export default function Header({ onClose }) {
   return (
     <header className="header">
       <div className="header-avatar">
-        <PlusIcon size={20} />
+        <img className="logo-img" src="/logo.png" alt="XB2BX" />
         <span className="online-dot" />
       </div>
 

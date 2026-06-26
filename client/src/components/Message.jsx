@@ -1,6 +1,5 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { PlusIcon } from '../icons.jsx';
 
 /** A single chat row. Assistant messages render markdown (tables, bold, lists). */
 export default function Message({ role, content }) {
@@ -10,7 +9,7 @@ export default function Message({ role, content }) {
     <div className={`msg-row ${isUser ? 'msg-row-user' : 'msg-row-bot'}`}>
       {!isUser && (
         <div className="msg-avatar">
-          <PlusIcon size={16} />
+          <img className="logo-img" src="/logo.png" alt="XB2BX" />
         </div>
       )}
 

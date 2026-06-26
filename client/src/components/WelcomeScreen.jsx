@@ -1,11 +1,11 @@
 import { CONFIG } from '../config.js';
-import { PlusIcon, SparkleIcon } from '../icons.jsx';
+import { SparkleIcon } from '../icons.jsx';
 
 export default function WelcomeScreen({ onStart }) {
   return (
     <div className="welcome">
       <div className="welcome-badge">
-        <PlusIcon size={34} stroke={2.2} />
+        <img className="logo-img" src="/logo.png" alt="XB2BX" />
       </div>
 
       <h1 className="welcome-title">{CONFIG.welcomeTitle}</h1>

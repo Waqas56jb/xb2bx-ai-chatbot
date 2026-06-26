@@ -9,8 +9,7 @@ import {
   LifeBuoy,
   BrainCircuit,
   Settings,
-  LogOut,
-  Sparkles
+  LogOut
 } from 'lucide-react';
 import { clearToken } from '../auth.js';
 import { CONFIG } from '../config.js';
@@ -39,7 +38,7 @@ export default function Layout() {
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-badge">
-            <Sparkles size={18} strokeWidth={2.2} />
+            <img className="logo-img" src="/logo.png" alt="XB2BX" />
           </span>
           <div>
             <div className="brand-name">{CONFIG.brand}</div>

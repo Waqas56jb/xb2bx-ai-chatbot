@@ -2,16 +2,18 @@
    XB2BX Admin — dashboard theme (matches the chat widget palette)
    ============================================================ */
 :root {
-  --bg: #efeae0;
+  --brand: rgb(255, 58, 89);
+  --brand-hover: rgb(228, 40, 70);
+  --bg: #f4f5f7;
   --panel: #ffffff;
-  --sidebar-from: #6c624a;
-  --sidebar-to: #2c2820;
-  --ink: #20201c;
-  --muted: #8d8779;
+  --sidebar-from: rgb(255, 58, 89);
+  --sidebar-to: rgb(206, 32, 60);
+  --ink: #1f2027;
+  --muted: #8a8a93;
   --line: rgba(0, 0, 0, 0.09);
-  --accent: #161513;
-  --accent-hover: #2c2a26;
-  --gold: #6c624a;
+  --accent: var(--brand);
+  --accent-hover: var(--brand-hover);
+  --gold: var(--brand);
   --success: #2f9e54;
   --danger: #c0492f;
   --warn: #c08a2f;
@@ -33,7 +35,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
   color: #f3efe6; display: flex; flex-direction: column; padding: 22px 16px; position: sticky; top: 0; height: 100vh;
 }
 .brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 22px; }
-.brand-badge { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; }
+.brand-badge { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 6px; flex-shrink: 0; }
+.logo-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 600; }
 .brand-sub { font-size: 11px; letter-spacing: 1px; opacity: 0.75; }
 .nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
@@ -64,7 +67,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 /* ---------- Stat cards ---------- */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
 .stat-card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
-.stat-icon { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; background: rgba(108, 98, 74, 0.12); color: var(--gold); display: flex; align-items: center; justify-content: center; }
+.stat-icon { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; background: rgba(255, 58, 89, 0.12); color: var(--brand); display: flex; align-items: center; justify-content: center; }
 .stat-value { font-family: var(--serif); font-size: 34px; font-weight: 600; line-height: 1; }
 .stat-label { color: var(--ink); font-weight: 600; margin-top: 8px; font-size: 14px; }
 .stat-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
@@ -83,7 +86,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 .badge-success { background: rgba(47, 158, 84, 0.15); color: var(--success); }
 .badge-danger { background: rgba(192, 73, 47, 0.15); color: var(--danger); }
 .badge-warn { background: rgba(192, 138, 47, 0.16); color: var(--warn); }
-.badge-accent { background: rgba(108, 98, 74, 0.16); color: var(--gold); }
+.badge-accent { background: rgba(255, 58, 89, 0.14); color: var(--brand); }
 
 /* ---------- Forms ---------- */
 .input, .textarea, .select {
@@ -143,9 +146,9 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webk
 .success-note { background: rgba(47, 158, 84, 0.12); color: var(--success); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13.5px; }
 
 /* ---------- Login ---------- */
-.login { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #2c2820, #0a0a0a); padding: 24px; }
+.login { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--sidebar-from), var(--sidebar-to)); padding: 24px; }
 .login-card { background: var(--panel); border-radius: 22px; padding: 38px 34px; width: 380px; max-width: 100%; text-align: center; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45); display: flex; flex-direction: column; gap: 4px; }
-.login-badge { width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.login-badge { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 12px; margin: 0 auto 14px; }
 .login-title { font-family: var(--serif); font-size: 26px; }
 .login-sub { color: var(--muted); font-size: 13.5px; margin-bottom: 14px; }
 .login-input { border: 1px solid var(--line); border-radius: 12px; padding: 13px 16px; font-size: 14px; font-family: var(--sans); margin-bottom: 14px; outline: none; }
