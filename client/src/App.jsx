@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { CONFIG } from './config.js';
+import { CONFIG, EMBED } from './config.js';
 import { streamMessage, getSessionId } from './api.js';
 import Header from './components/Header.jsx';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
@@ -24,6 +24,13 @@ export default function App() {
     setConversationId(null);
     setLoading(false);
     setStreaming(false);
+  };
+
+  // In embedded mode the X collapses the floating widget (keeps the chat);
+  // standalone it resets the conversation.
+  const handleClose = () => {
+    if (EMBED) window.parent.postMessage({ type: 'xb2bx-chat-close' }, '*');
+    else reset();
   };
 
   const send = useCallback(
@@ -80,7 +87,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="widget">
-        <Header onClose={reset} />
+        <Header onClose={handleClose} />
 
         <div className="body">
           {!started ? (

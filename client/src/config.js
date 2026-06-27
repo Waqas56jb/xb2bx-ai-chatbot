@@ -2,6 +2,9 @@
  * Widget configuration — white-label everything from here.
  * Brand name, copy, quick replies, colours, and the backend URL.
  */
+// Embedded mode = loaded inside the floating-widget iframe (?embed=1).
+export const EMBED = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
+
 export const CONFIG = {
   // Backend
   apiUrl: import.meta.env.VITE_API_URL || 'https://xb2bx-ai-chatbot-backend.vercel.app/api/chat',

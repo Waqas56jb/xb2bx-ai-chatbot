@@ -57,6 +57,20 @@ client/
       TypingIndicator.jsx
 ```
 
+## Embed on any website (WordPress, etc.)
+
+The build outputs a loader at `/embed.js` that injects a floating launcher bubble
+(bottom-right) which opens the chat in an iframe. After deploying this `client/`
+app (e.g. to Vercel), add ONE line before `</body>` on the target site:
+
+```html
+<script src="https://YOUR-WIDGET-URL/embed.js" defer></script>
+```
+
+`embed.js` auto-detects its own host, so the iframe loads from the same place.
+On mobile it expands full-screen; the launcher toggles open/closed and the in-chat
+✕ collapses it. The widget calls the backend set in `.env` / `src/config.js`.
+
 ## Customise
 
 - **Brand / copy / quick replies** → `src/config.js`
