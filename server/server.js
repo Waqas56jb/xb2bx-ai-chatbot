@@ -22,6 +22,8 @@
  */
 import express from 'express';
 import cors from 'cors';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CONFIG, assertConfig } from './src/config.js';
 import { routeAgent, reply, replyStream } from './src/llm.js';
 import { AGENTS } from './src/agents.js';
@@ -45,6 +47,11 @@ const app = express();
 app.use(express.json({ limit: '512kb' }));
 const corsOrigin = CONFIG.allowedOrigins.includes('*') ? true : CONFIG.allowedOrigins;
 app.use(cors({ origin: corsOrigin, methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'] }));
+
+// Serve the self-contained widget loader + logo (public/) so any website can
+// embed the chatbot with a single <script src=".../widget.js"> tag.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
 function textOf(content) {
   if (typeof content === 'string') return content;
