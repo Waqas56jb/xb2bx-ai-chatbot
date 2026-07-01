@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
-await p.goto('http://localhost:4174/', { waitUntil: 'networkidle' });
+await p.goto('http://localhost:5175/', { waitUntil: 'networkidle' });
 await p.waitForTimeout(700);
 await p.fill('input[type=email]', 'admin@gmail.com');
 await p.fill('input[type=password]', 'admin@123!');
