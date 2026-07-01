@@ -145,15 +145,8 @@ create table if not exists knowledge (
   updated_at timestamptz not null default now()
 );
 
--- ---------- Admin panel accounts (organization staff logins) ----------
-create table if not exists admin_users (
-  id         bigint generated always as identity primary key,
-  email      text unique not null,
-  password   text not null,
-  role       text not null default 'member',   -- owner | member
-  created_at timestamptz not null default now()
-);
--- The owner account is auto-seeded by the server on first boot from
--- ADMIN_EMAIL / ADMIN_PASSWORD in .env, then managed from the admin panel.
+-- Admin panel staff logins are stored inside the `settings` table (key
+-- "admin_accounts") as JSON, so no extra table is required. The owner account
+-- is auto-seeded from ADMIN_EMAIL / ADMIN_PASSWORD on first boot.
 
 -- No sample/dummy data. Add real suppliers and products from the admin panel.

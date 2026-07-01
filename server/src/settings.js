@@ -85,6 +85,7 @@ export async function updateSettings(patch = {}) {
 export async function getSettingsForAdmin() {
   const s = await getSettings({ force: true });
   const masked = { ...s };
+  delete masked.admin_accounts; // account logins are managed on the Accounts page
   if (masked.openai_api_key) {
     const k = masked.openai_api_key;
     masked.openai_api_key_set = true;

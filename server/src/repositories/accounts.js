@@ -1,73 +1,107 @@
 /**
- * Admin accounts (Supabase) — org staff logins for the admin panel.
+ * Admin accounts — org staff logins for the admin panel.
  *
- * The owner account is seeded from ADMIN_EMAIL / ADMIN_PASSWORD on first boot.
- * Login falls back to the env owner if the admin_users table doesn't exist yet
- * or has no rows, so the panel keeps working before the table is created.
+ * Stored as a JSON array in the existing `settings` table under the key
+ * "admin_accounts" (no extra table / DDL needed). The owner account is seeded
+ * from ADMIN_EMAIL / ADMIN_PASSWORD on first boot. Login falls back to the env
+ * owner if no accounts exist yet.
  */
-import { supabase, unwrap, clean } from '../db/supabase.js';
+import { supabase } from '../db/supabase.js';
 import { CONFIG } from '../config.js';
 
+export const ACCOUNTS_KEY = 'admin_accounts';
 const norm = (e) => (e || '').trim().toLowerCase();
 
-/** Seed the owner account from env if the table is empty. Idempotent. */
+async function readAll() {
+  const { data } = await supabase.from('settings').select('value').eq('key', ACCOUNTS_KEY).maybeSingle();
+  if (!data || !data.value) return null; // null = not initialised
+  try {
+    const arr = JSON.parse(data.value);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeAll(arr) {
+  const { error } = await supabase.from('settings').upsert({ key: ACCOUNTS_KEY, value: JSON.stringify(arr) }, { onConflict: 'key' });
+  if (error) throw new Error('[accounts:write] ' + error.message);
+}
+
+let counter = 0;
+function newId() {
+  counter = (counter + 1) % 1000;
+  return 'AU-' + Date.now() + '-' + counter;
+}
+
+/** Seed the owner account from env if none exist. Idempotent. */
 export async function ensureOwner() {
   try {
-    const { count, error } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
-    if (error) return; // table missing — env fallback covers login
-    if (!count && CONFIG.adminEmail && CONFIG.adminPassword) {
-      await supabase.from('admin_users').insert({ email: norm(CONFIG.adminEmail), password: CONFIG.adminPassword, role: 'owner' });
+    const arr = await readAll();
+    if ((arr === null || arr.length === 0) && CONFIG.adminEmail && CONFIG.adminPassword) {
+      await writeAll([{ id: newId(), email: norm(CONFIG.adminEmail), password: CONFIG.adminPassword, role: 'owner', created_at: new Date().toISOString() }]);
       console.log('[bootstrap] seeded owner admin account.');
     }
-  } catch {
-    /* ignore */
+  } catch (e) {
+    console.error('[bootstrap] ensureOwner skipped:', e?.message || e);
   }
 }
 
 /** Verify an email/password login. Returns { email, role } or null. */
 export async function verifyLogin(email, password) {
   const em = norm(email);
+  let arr = null;
   try {
-    const { data, error } = await supabase.from('admin_users').select('email, password, role').eq('email', em).maybeSingle();
-    if (!error) {
-      if (data) return data.password === password ? { email: data.email, role: data.role } : null;
-      // No such account. If the table has ANY accounts, reject; else fall through to env.
-      const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
-      if (count) return null;
-    }
+    arr = await readAll();
   } catch {
-    /* table missing — env fallback */
+    arr = null;
   }
+  if (arr && arr.length) {
+    const u = arr.find((a) => norm(a.email) === em);
+    if (!u) return null;
+    return u.password === password ? { email: u.email, role: u.role } : null;
+  }
+  // Fallback to env owner (before any accounts exist).
   if (em === norm(CONFIG.adminEmail) && password === CONFIG.adminPassword) return { email: em, role: 'owner' };
   return null;
 }
 
 // ---- CRUD (admin-only) ----
 export async function listAccounts() {
-  return unwrap(
-    await supabase.from('admin_users').select('id, email, password, role, created_at').order('created_at', { ascending: true }),
-    'listAccounts'
-  );
+  return (await readAll()) || [];
 }
 
 export async function createAccount({ email, password, role = 'member' } = {}) {
   const em = norm(email);
   if (!em || !password) throw new Error('Email and password are required.');
-  const r = role === 'owner' ? 'owner' : 'member';
-  return unwrap(await supabase.from('admin_users').insert({ email: em, password, role: r }).select().single(), 'createAccount');
+  const arr = (await readAll()) || [];
+  if (arr.some((a) => norm(a.email) === em)) throw new Error('An account with this email already exists.');
+  const acc = { id: newId(), email: em, password, role: role === 'owner' ? 'owner' : 'member', created_at: new Date().toISOString() };
+  arr.push(acc);
+  await writeAll(arr);
+  return acc;
 }
 
 export async function updateAccount(id, patch = {}) {
-  patch = clean(patch);
-  if (patch.email) patch.email = norm(patch.email);
-  if (patch.role && patch.role !== 'owner') patch.role = 'member';
-  if ('password' in patch && !patch.password) delete patch.password; // don't blank a password
-  return unwrap(await supabase.from('admin_users').update(patch).eq('id', id).select().single(), 'updateAccount');
+  const arr = (await readAll()) || [];
+  const i = arr.findIndex((a) => String(a.id) === String(id));
+  if (i === -1) throw new Error('Account not found.');
+  if (patch.email) {
+    const em = norm(patch.email);
+    if (arr.some((a, j) => j !== i && norm(a.email) === em)) throw new Error('An account with this email already exists.');
+    arr[i].email = em;
+  }
+  if (patch.password) arr[i].password = patch.password;
+  if (patch.role) arr[i].role = patch.role === 'owner' ? 'owner' : 'member';
+  await writeAll(arr);
+  return arr[i];
 }
 
 export async function deleteAccount(id) {
-  const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
-  if ((count || 0) <= 1) throw new Error('Cannot delete the last remaining account.');
-  unwrap(await supabase.from('admin_users').delete().eq('id', id), 'deleteAccount');
+  const arr = (await readAll()) || [];
+  if (arr.length <= 1) throw new Error('Cannot delete the last remaining account.');
+  const next = arr.filter((a) => String(a.id) !== String(id));
+  if (next.length === arr.length) throw new Error('Account not found.');
+  await writeAll(next);
   return { id, deleted: true };
 }
