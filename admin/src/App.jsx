@@ -11,6 +11,7 @@ import Rfqs from './pages/Rfqs.jsx';
 import Tickets from './pages/Tickets.jsx';
 import Training from './pages/Training.jsx';
 import Settings from './pages/Settings.jsx';
+import Accounts from './pages/Accounts.jsx';
 
 function Protected({ children }) {
   return isLoggedIn() ? children : <Navigate to="/login" replace />;
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="rfqs" element={<Rfqs />} />
           <Route path="tickets" element={<Tickets />} />
           <Route path="training" element={<Training />} />
+          <Route path="accounts" element={<Accounts />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

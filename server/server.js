@@ -39,9 +39,11 @@ import { listListings, updateListing, deleteListing } from './src/repositories/l
 import { listTickets, updateTicket, deleteTicket, listEscalations, updateEscalation, deleteEscalation } from './src/repositories/tickets.js';
 import { getStats } from './src/repositories/analytics.js';
 import { ensureSeed } from './src/bootstrap.js';
+import { verifyLogin, ensureOwner, listAccounts, createAccount, updateAccount, deleteAccount } from './src/repositories/accounts.js';
 
 assertConfig();
 ensureSeed();
+ensureOwner();
 
 const app = express();
 app.use(express.json({ limit: '512kb' }));
@@ -171,15 +173,18 @@ app.post('/api/chat/stream', h(async (req, res) => {
 }));
 
 // ---------------- Admin ----------------
-app.post('/api/admin/login', (req, res) => {
-  const email = (req.body?.email || '').trim().toLowerCase();
-  const password = req.body?.password || '';
-  if (email !== CONFIG.adminEmail || password !== CONFIG.adminPassword) {
-    return res.status(401).json({ ok: false, error: 'Invalid email or password' });
-  }
+app.post('/api/admin/login', h(async (req, res) => {
+  const user = await verifyLogin(req.body?.email, req.body?.password || '');
+  if (!user) return res.status(401).json({ ok: false, error: 'Invalid email or password' });
   // Hand back the bearer token the panel uses for every subsequent admin call.
-  res.json({ ok: true, token: CONFIG.adminToken });
-});
+  res.json({ ok: true, token: CONFIG.adminToken, user });
+}));
+
+// Account management (org staff logins)
+app.get('/api/admin/accounts', requireAdmin, h(async (_req, res) => res.json({ accounts: await listAccounts() })));
+app.post('/api/admin/accounts', requireAdmin, h(async (req, res) => res.json({ account: await createAccount(req.body || {}) })));
+app.patch('/api/admin/accounts/:id', requireAdmin, h(async (req, res) => res.json({ account: await updateAccount(req.params.id, req.body || {}) })));
+app.delete('/api/admin/accounts/:id', requireAdmin, h(async (req, res) => res.json(await deleteAccount(req.params.id))));
 
 app.get('/api/admin/stats', requireAdmin, h(async (_req, res) => res.json(await getStats())));
 

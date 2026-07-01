@@ -20,7 +20,7 @@ export async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-/** Login with email + password; returns the bearer token to store. */
+/** Login with email + password; returns { token, user }. */
 export async function login(email, password) {
   const res = await fetch(CONFIG.apiBase + '/admin/login', {
     method: 'POST',
@@ -29,5 +29,5 @@ export async function login(email, password) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok || !data.token) throw new Error(data.error || 'Invalid email or password');
-  return data.token;
+  return { token: data.token, user: data.user || { email, role: 'member' } };
 }

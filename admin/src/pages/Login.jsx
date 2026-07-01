@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../api.js';
-import { setToken } from '../auth.js';
+import { setSession } from '../auth.js';
 import { CONFIG } from '../config.js';
 import { Button, ErrorNote } from '../components/ui.jsx';
 
@@ -17,8 +17,8 @@ export default function Login() {
     setError('');
     setBusy(true);
     try {
-      const token = await login(email.trim(), password);
-      setToken(token);
+      const { token, user } = await login(email.trim(), password);
+      setSession(token, user);
       navigate('/');
     } catch (err) {
       setError(err.message);

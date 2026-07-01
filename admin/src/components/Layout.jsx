@@ -10,6 +10,7 @@ import {
   LifeBuoy,
   BrainCircuit,
   Settings,
+  Users,
   LogOut,
   Menu,
   X
@@ -26,6 +27,7 @@ const NAV = [
   { to: '/rfqs', label: 'RFQs', Icon: FileText },
   { to: '/tickets', label: 'Tickets & Handoffs', Icon: LifeBuoy },
   { to: '/training', label: 'Training', Icon: BrainCircuit },
+  { to: '/accounts', label: 'Accounts', Icon: Users },
   { to: '/settings', label: 'Settings', Icon: Settings }
 ];
 
